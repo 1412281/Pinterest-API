@@ -1,23 +1,30 @@
-
 <!DOCTYPE html>
 	<head>
-	<title>Pintrest Login</title>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+  	<title>Pintrest Login</title>
+  	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+    <script async defer src="//assets.pinterest.com/js/pinit.js"></script>
 	</head>
 	<body>
-  <p onclick="pintrest()">Click me</p>
-	<p onclick="pintrest2()">Click me to show accessToken</p>
-	<div id="result"></div>
-  <div id="accessToken"></div>
-	<div id="result2"></div>
-    <a data-pin-do="buttonPin" data-pin-count="above" href="https://www.pinterest.com/pin/create/button/?url=https%3A%2F%2Fwww.flickr.com%2Fphotos%2Fkentbrew%2F6851755809%2F&media=https%3A%2F%2Ffarm8.staticflickr.com%2F7027%2F6851755809_df5b2051c9_z.jpg&description=Next%20stop%3A%20Pinterest"></a>
-    <a data-pin-do="embedPin" data-pin-lang="vi" href="https://www.pinterest.com/pin/99360735500167749/"></a>
-	</body>
-    <script async defer src="//assets.pinterest.com/js/pinit.js"></script>
-<script>
+    <p onclick="pintrest()">Click me</p>
+  	<p onclick="pintrest2()">Click me to show accessToken</p>
+    <!-- example for API PDK request method -->
+  	<div id="result"></div>
+    <div id="accessToken"></div>
+  	<div id="result2"></div>
 
+    <!-- end examples -->
+
+
+    <!-- parse property in div id="content" -->
+    <div id="content"></div>
+	</body>
+  <!-- script for demo -->
+
+
+  <!-- _______________________________________ -->
+<script>
     var access_token;
-    var _PDK ;
+    var _PDK;
     function pintrest2(){
     PDK.request('/v1/me/', function (response) {
          if (!response || response.error) {
@@ -30,10 +37,8 @@
                 $('#accessToken').text(access_token);
          }
        });
-      
-     
     }
-  
+// login and call some request , see response in console 
 function pintrest(){
     window.pAsyncInit = function() {
         PDK.init({
@@ -84,12 +89,10 @@ function pintrest(){
                  // PDK.logout();
           }
         });
-
         //end get board info
         });
         //end login
     };
-
     (function(d, s, id){
         var js, pjs = d.getElementsByTagName(s)[0];
         if (d.getElementById(id)) {return;}
@@ -97,8 +100,7 @@ function pintrest(){
         js.src = "https://assets.pinterest.com/sdk/sdk.js";
         pjs.parentNode.insertBefore(js, pjs);
     }(document, 'script', 'pinterest-jssdk'));
-
-    }
+}
 </script>
 
 </body>
