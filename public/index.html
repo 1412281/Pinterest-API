@@ -1,30 +1,152 @@
 <!DOCTYPE html>
 	<head>
   	<title>Pintrest Login</title>
-  	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
-    <script async defer src="//assets.pinterest.com/js/pinit.js"></script>
+    <link rel="stylesheet" type="text/css" href="stylesheets/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="stylesheets/style.css">
 	</head>
 	<body>
-    <p onclick="pintrest()">Click me</p>
-  	<p onclick="pintrest2()">Click me to show accessToken</p>
-    <!-- example for API PDK request method -->
-  	<div id="result"></div>
-    <div id="accessToken"></div>
-  	<div id="result2"></div>
-
-    <!-- end examples -->
-
-
     <!-- parse property in div id="content" -->
-    <div id="content"></div>
+    <p></p>
+    <div class="row">
+      <div class="col-sm-6 col-sm-offset-6" id="login_component"></div>
+    </div>
+    <!-- home component -->
+    <div class="row">
+      <div class="col-sm-2"></div>
+        <div class="col-sm-8" id="home_component">
+        </div>
+        <div class="col-sm-2"></div>
+    </div>
+      
+      
+      
 	</body>
+<script src="javascripts/jquery-3.2.1.min.js" type="text/javascript"></script>
+<script src="javascripts/bootstrap.min.js" type="text/javascript"></script>
+<script async defer src="//assets.pinterest.com/js/pinit.js"></script>
   <!-- script for demo -->
-
-
-  <!-- _______________________________________ -->
 <script>
+/***********************************************************************************/
+  // initialize login button
     var access_token;
     var _PDK;
+
+    $(document).ready( function(){
+      window.pAsyncInit = function() {
+        PDK.init({
+            appId: "4926379604913963794",
+            cookie: true
+        });
+        _PDK = PDK;
+        load_login_component();
+      }
+    });
+    //end INITIALIZE
+/***********************************************************************************/
+    // LOAD FUNCTIONS
+    // load login component
+    function load_login_component(){
+      var htmlString ='';
+      htmlString += '<button class="btn btn-primary" onclick="login()">Login</button>';
+      $('#login_component').html(htmlString);
+    }
+
+    //load home_component
+    function load_home_component(){
+      var htmlString ='<div class="row">';
+      // get user info
+      var params = {
+          fields: 'id, image, username, first_name, last_name'
+        };
+      _PDK.request('/v1/me/', params, function (response) {
+         if (!response || response.error) {
+         } 
+         else {
+            // parse data
+             htmlString +=  '<div class="col-sm-4">\
+                              <h1 style="text-align: right;">'+response.data.first_name+' '+response.data.last_name+'</h1>\
+                            </div>\
+                            <div class="col-sm-3">\
+                              <img src="https://i.pinimg.com/avatars/tranthienhoang14_1505747823_60.jpg" class="img-circle">\
+                            </div>\
+                            <div class="col-sm-3">\
+                              <input type="text" class="form-control" name="" value="">\
+                            </div>\
+                            <div class="col-sm-2">\
+                              <button type="button" class="btn btn-success">find user</button>\
+                            </div>\
+                          </div>';
+            //get list user's pin
+            params = {
+              fields: 'id, image'
+            };
+            _PDK.request('/v1/me/pins', params, function (response) {
+             if (!response || response.error) {
+             } 
+             else {
+                  console.log(JSON.stringify(response)); 
+                  htmlString += '<div class="row">\
+                                     <div class="thumbnail col-sm-3">\
+                                     <button type="button" class="btn btn-success glyphicon glyphicon-plus"></button>\
+                                  </div>';
+                  response.data.forEach( function(element, index) {
+                      console.log(element.image.original.url);
+                      htmlString += '<div class="thumbnail col-sm-3">\
+                                      <img src = "'+element.image.original.url+'">\
+                                     </div>';
+                  });
+
+
+
+                  htmlString += '</div>';
+                // parse data of list pins
+                 $('#home_component').html(htmlString);
+             }
+           });
+         }
+       });
+    }
+
+    // END LOAD FUNCTIONS
+/***********************************************************************************/
+    
+    // login for login button
+    function login(){
+      PDK.login({ scope : 'read_relationships, read_public' }, function(response){
+          if (!response || response.error) {
+            alert('Error occurred');
+          } 
+          else {
+            // save accessToken
+            access_token = PDK.getSession().accessToken;
+             console.log(JSON.stringify(response));
+             // remove login_UI and load HOME_PAGE
+              $('#login_component').html('');
+              load_home_component();
+          }
+      });
+    }
+
+
+/***********************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     function pintrest2(){
     PDK.request('/v1/me/', function (response) {
          if (!response || response.error) {
@@ -40,35 +162,10 @@
     }
 // login and call some request , see response in console 
 function pintrest(){
-    window.pAsyncInit = function() {
-        PDK.init({
-            appId: "4926379604913963794",
-            cookie: true
-        });
-
-        //login
-        PDK.login({ scope : 'read_relationships, read_public' }, function(response){
-            if (!response || response.error) {
-              alert('Error occurred');
-            } else {
-              // save accessToken and PDK;
-              access_token = PDK.getSession().accessToken;
-              _PDK =  PDK;
-
-
-               console.log(JSON.stringify(response));
-            }
+     
         //get user info
         var pins = [];
-       PDK.request('/v1/me/', function (response) {
-         if (!response || response.error) {
-           //alert('Error occurred');
-         } else {
-         	console.log(JSON.stringify(response));
-             //  alert('success');
-               console.log(PDK.getSession().accessToken);
-         }
-       });
+       
 
        // get list of user's boards info
         PDK.request('/v1/me/boards', function (response) {
@@ -89,8 +186,7 @@ function pintrest(){
                  // PDK.logout();
           }
         });
-        //end get board info
-        });
+        
         //end login
     };
     (function(d, s, id){
@@ -100,8 +196,6 @@ function pintrest(){
         js.src = "https://assets.pinterest.com/sdk/sdk.js";
         pjs.parentNode.insertBefore(js, pjs);
     }(document, 'script', 'pinterest-jssdk'));
-}
 </script>
-
 </body>
 </html>
