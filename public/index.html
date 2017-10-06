@@ -5,14 +5,35 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
 	</head>
 	<body>
-	<p onclick="pintrest()">Click me</p>
+  <p onclick="pintrest()">Click me</p>
+	<p onclick="pintrest2()">Click me to show accessToken</p>
 	<div id="result"></div>
+  <div id="accessToken"></div>
 	<div id="result2"></div>
     <a data-pin-do="buttonPin" data-pin-count="above" href="https://www.pinterest.com/pin/create/button/?url=https%3A%2F%2Fwww.flickr.com%2Fphotos%2Fkentbrew%2F6851755809%2F&media=https%3A%2F%2Ffarm8.staticflickr.com%2F7027%2F6851755809_df5b2051c9_z.jpg&description=Next%20stop%3A%20Pinterest"></a>
     <a data-pin-do="embedPin" data-pin-lang="vi" href="https://www.pinterest.com/pin/99360735500167749/"></a>
 	</body>
     <script async defer src="//assets.pinterest.com/js/pinit.js"></script>
 <script>
+
+    var access_token;
+    var _PDK ;
+    function pintrest2(){
+    PDK.request('/v1/me/', function (response) {
+         if (!response || response.error) {
+           //alert('Error occurred');
+         } else {
+          console.log(JSON.stringify(response));
+             //  alert('success');
+               console.log(PDK.getSession().accessToken);
+                alert(response);
+                $('#accessToken').text(access_token);
+         }
+       });
+      
+     
+    }
+  
 function pintrest(){
     window.pAsyncInit = function() {
         PDK.init({
@@ -25,6 +46,11 @@ function pintrest(){
             if (!response || response.error) {
               alert('Error occurred');
             } else {
+              // save accessToken and PDK;
+              access_token = PDK.getSession().accessToken;
+              _PDK =  PDK;
+
+
                console.log(JSON.stringify(response));
             }
         //get user info
