@@ -1,0 +1,79 @@
+
+<!DOCTYPE html>
+	<head>
+	<title>Pintrest Login</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+	</head>
+	<body>
+	<p onclick="pintrest()">Click me</p>
+	<div id="result"></div>
+	<div id="result2"></div>
+    <a data-pin-do="buttonPin" data-pin-count="above" href="https://www.pinterest.com/pin/create/button/?url=https%3A%2F%2Fwww.flickr.com%2Fphotos%2Fkentbrew%2F6851755809%2F&media=https%3A%2F%2Ffarm8.staticflickr.com%2F7027%2F6851755809_df5b2051c9_z.jpg&description=Next%20stop%3A%20Pinterest"></a>
+    <a data-pin-do="embedPin" data-pin-lang="vi" href="https://www.pinterest.com/pin/99360735500167749/"></a>
+	</body>
+    <script async defer src="//assets.pinterest.com/js/pinit.js"></script>
+<script>
+function pintrest(){
+    window.pAsyncInit = function() {
+        PDK.init({
+            appId: "4926379604913963794",
+            cookie: true
+        });
+
+        //login
+        PDK.login({ scope : 'read_relationships, read_public' }, function(response){
+            if (!response || response.error) {
+              alert('Error occurred');
+            } else {
+               console.log(JSON.stringify(response));
+            }
+        //get user info
+        var pins = [];
+       PDK.request('/v1/me/', function (response) {
+         if (!response || response.error) {
+           //alert('Error occurred');
+         } else {
+         	console.log(JSON.stringify(response));
+             //  alert('success');
+               console.log(PDK.getSession().accessToken);
+         }
+       });
+
+       // get list of user's boards info
+        PDK.request('/v1/me/boards', function (response) {
+          if (!response || response.error) {
+          } else {
+            console.log(JSON.stringify(response));
+                 // PDK.logout();
+          }
+        });
+
+        //end get board info
+
+        // get list of board's pins
+         PDK.request('/v1/boards/673077175498420282/pins/', function (response) {
+          if (!response || response.error) {
+          } else {
+            console.log(JSON.stringify(response));
+                 // PDK.logout();
+          }
+        });
+
+        //end get board info
+        });
+        //end login
+    };
+
+    (function(d, s, id){
+        var js, pjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) {return;}
+        js = d.createElement(s); js.id = id;
+        js.src = "https://assets.pinterest.com/sdk/sdk.js";
+        pjs.parentNode.insertBefore(js, pjs);
+    }(document, 'script', 'pinterest-jssdk'));
+
+    }
+</script>
+
+</body>
+</html>
