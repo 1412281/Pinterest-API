@@ -7,14 +7,12 @@
 	<body>
     <!-- parse property in div id="content" -->
     <p></p>
-    <div class="row">
-      <div class="col-sm-6 col-sm-offset-6" id="login_component"></div>
-    </div>
     <!-- home component -->
     <div class="row">
       <div class="col-sm-2"></div>
-        <div class="col-sm-8" id="home_component">
-        </div>
+        <div class="col-sm-8 col-sm-offset-6" id="login_component"></div>
+        <div class="col-sm-8" id="user_component"></div>
+        <div class="col-sm-8" id="boards_pins_component"></div>
         <div class="col-sm-2"></div>
     </div>
       
@@ -27,10 +25,15 @@
   <!-- script for demo -->
 <script>
 /***********************************************************************************/
-  // initialize login button
+// CONST
+  var pintrest_image_property = {
+    'small' : '60x60',
+    'medium': '237x' ,
+  };
+  // initialize
     var access_token;
     var _PDK;
-
+    var params;
     $(document).ready( function(){
       window.pAsyncInit = function() {
         PDK.init({
@@ -53,9 +56,8 @@
 
     //load home_component
     function load_home_component(){
-      var htmlString ='<div class="row">';
       // get user info
-      var params = {
+      params = {
           fields: 'id, image, username, first_name, last_name'
         };
       _PDK.request('/v1/me/', params, function (response) {
@@ -63,48 +65,74 @@
          } 
          else {
             // parse data
-             htmlString +=  '<div class="col-sm-4">\
-                              <h1 style="text-align: right;">'+response.data.first_name+' '+response.data.last_name+'</h1>\
-                            </div>\
-                            <div class="col-sm-3">\
-                              <img src="https://i.pinimg.com/avatars/tranthienhoang14_1505747823_60.jpg" class="img-circle">\
-                            </div>\
-                            <div class="col-sm-3">\
-                              <input type="text" class="form-control" name="" value="">\
-                            </div>\
-                            <div class="col-sm-2">\
-                              <button type="button" class="btn btn-success">find user</button>\
-                            </div>\
-                          </div>';
+            load_user(response.data);
             //get list user's pin
             params = {
               fields: 'id, image'
             };
             _PDK.request('/v1/me/pins', params, function (response) {
-             if (!response || response.error) {
-             } 
-             else {
-                  console.log(JSON.stringify(response)); 
-                  htmlString += '<div class="row">\
-                                     <div class="thumbnail col-sm-3">\
-                                     <button type="button" class="btn btn-success glyphicon glyphicon-plus"></button>\
-                                  </div>';
-                  response.data.forEach( function(element, index) {
-                      console.log(element.image.original.url);
-                      htmlString += '<div class="thumbnail col-sm-3">\
-                                      <img src = "'+element.image.original.url+'">\
-                                     </div>';
-                  });
-
-
-
-                  htmlString += '</div>';
-                // parse data of list pins
-                 $('#home_component').html(htmlString);
-             }
-           });
+               if (!response || response.error) {
+               }
+               else {
+                    load_my_pins(response.data);
+               }
+            });
          }
        });
+    }
+
+    function load_user(data){
+       // parse data
+          console.log(data);
+          var image = data.image;
+          var htmlString = '<div class="col-sm-4">\
+                            <h1 style="text-align: right;">'+data.first_name+' '+data.last_name+'</h1>\
+                          </div>\
+                          <div class="col-sm-3">\
+                            <img src="'+image[pintrest_image_property.small].url+'" class="img-circle">\
+                          </div>\
+                          <div class="col-sm-3">\
+                            <input type="text" class="form-control" name="" value="" id="username" data-toggle="tooltip" title="type username" placeholder="username">\
+                          </div>\
+                          <div class="col-sm-2">\
+                            <button type="button" class="btn btn-success" id="search" onclick="search()">find user</button>\
+                          </div>\
+                        </div>';
+          $('#user_component').html(htmlString); 
+    }
+
+    function load_boards(){
+
+    }
+
+    function load_my_pins(data){
+      var htmlString ='<div class="row">';
+      htmlString = '<div class="row">\
+                         <div class="thumbnail col-sm-3">\
+                         <button type="button" class="btn btn-success glyphicon glyphicon-plus"></button>\
+                      </div>';
+      data.forEach( function(element, index) {
+          console.log(element.image.original.url);
+          htmlString += '<div class="thumbnail col-sm-3">\
+                          <img src = "'+element.image.original.url+'">\
+                         </div>';
+      });
+      htmlString += '</div>';
+      // parse data of list pins
+      $('#boards_pins_component').html(htmlString);
+    }
+
+    function load_user_pins(pins){
+      var htmlString ='<div class="row">';
+      pins.forEach( function(element, index) {
+          var image = element.images;
+          htmlString += '<div class="thumbnail col-sm-3">\
+                          <img src = "'+image[pintrest_image_property.medium].url+'">\
+                         </div>';
+      });
+      htmlString += '</div>';
+      // parse data of list pins
+      $('#boards_pins_component').html(htmlString);
     }
 
     // END LOAD FUNCTIONS
@@ -127,7 +155,44 @@
       });
     }
 
-
+    function search(){
+      //get username from input
+      var username = $('#username').val();
+      if(!username) return;
+      // request user info
+      params = {
+          fields: 'id, image, username, first_name, last_name'
+      };
+      _PDK.request('/v1/users/'+username, params, function (response) {
+         if (!response || response.error) {
+          alert("'"+username+"' does not exists");
+         }
+         else {
+              // load user info and show 
+              var data = response.data;
+              console.log(data);
+              load_user(data);
+              //load username's pins
+              $.ajax({
+                url: 'https://api.pinterest.com/v3/pidgets/users/'+username+'/pins/',
+                type: 'GET',
+                dataType: 'json',
+                data : {}
+              })
+              .done(function(response) {
+                //get first 50 pins 
+                var pins = response.data.pins;
+                console.log(pins);
+                load_user_pins(pins);
+              })
+              .fail(function() {
+                console.log("error");
+              })
+              .always(function() {
+              });
+         }
+      });
+    }
 /***********************************************************************************/
 
 
