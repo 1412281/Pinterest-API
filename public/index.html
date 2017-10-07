@@ -1,95 +1,136 @@
 <!DOCTYPE html>
-	<head>
-  	<title>Pintrest Login</title>
-    <link rel="stylesheet" type="text/css" href="stylesheets/bootstrap.min.css">
+
+<head>
+    <title>Pintrest Login</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="stylesheets/style.css">
-	</head>
-	<body>
+</head>
+
+<body>
     <!-- parse property in div id="content" -->
     <p></p>
     <!-- home component -->
     <div class="row">
-      <div class="col-sm-2"></div>
+        <div class="col-sm-2"></div>
         <div class="col-sm-8 col-sm-offset-6" id="login_component"></div>
         <div class="col-sm-8" id="user_component"></div>
         <div class="col-sm-8" id="boards_pins_component"></div>
         <div class="col-sm-2"></div>
     </div>
-      
-      
-      
-	</body>
-<script src="javascripts/jquery-3.2.1.min.js" type="text/javascript"></script>
-<script src="javascripts/bootstrap.min.js" type="text/javascript"></script>
+
+    <!-- Modal -->
+    <div class="modal fade" id="pinModal" tabindex="-1" role="dialog" aria-labelledby="pinModal" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+
+                <div class="modal-body">
+                    <img id="pinImg" src="" width="" alt="">
+                    <h3 id="pinNote"></h3>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-danger">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</body>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+
 <script async defer src="//assets.pinterest.com/js/pinit.js"></script>
-  <!-- script for demo -->
+<!-- script for demo -->
 <script>
-/***********************************************************************************/
-// CONST
-  var pintrest_image_property = {
-    'small' : '60x60',
-    'medium': '237x' ,
-  };
-  // initialize
+    $('#boards_pins_component').on('click', '#pins', function() {
+        ClearDataModal();
+        var id = $(this).attr('data-id');
+        getpin(id, function(obj) {
+            $('#pinModal #pinImg').attr('src', obj.data.image.original.url);
+            $('#pinModal #pinImg').attr('width', obj.data.image.original.width);
+            $('#pinNote').text(obj.data.note);
+
+        });
+
+    })
+
+    function ClearDataModal() {
+        $('#pinModal #pinImg').attr('src', '');
+        $('#pinModal #pinImg').attr('width', '');
+        $('#pinNote').text('');
+    }
+</script>
+
+<script>
+    /***********************************************************************************/
+    // CONST
+    var pintrest_image_property = {
+        'small': '60x60',
+        'medium': '237x',
+    };
+    // initialize
     var access_token;
     var _PDK;
     var params;
-    $(document).ready( function(){
-      window.pAsyncInit = function() {
-        PDK.init({
-            appId: "4926379604913963794",
-            cookie: true
-        });
-        _PDK = PDK;
-        load_login_component();
-      }
+    $(document).ready(function() {
+        window.pAsyncInit = function() {
+            PDK.init({
+                appId: "4926379604913963794",
+                cookie: true
+            });
+            _PDK = PDK;
+            load_login_component();
+        }
     });
     //end INITIALIZE
-/***********************************************************************************/
+    /***********************************************************************************/
     // LOAD FUNCTIONS
     // load login component
-    function load_login_component(){
-      var htmlString ='';
-      htmlString += '<button class="btn btn-primary" onclick="login()">Login</button>';
-      $('#login_component').html(htmlString);
+    function load_login_component() {
+        var htmlString = '';
+        htmlString += '<button class="btn btn-primary" onclick="login()">Login</button>';
+        $('#login_component').html(htmlString);
     }
 
     //load home_component
-    function load_home_component(){
-      // get user info
-      params = {
-          fields: 'id, image, username, first_name, last_name'
+    function load_home_component() {
+        // get user info
+        params = {
+            fields: 'id, image, username, first_name, last_name'
         };
-      _PDK.request('/v1/me/', params, function (response) {
-         if (!response || response.error) {
-         } 
-         else {
-            // parse data
-            load_user(response.data);
-            //get list user's pin
-            params = {
-              fields: 'id, image'
-            };
-            _PDK.request('/v1/me/pins', params, function (response) {
-               if (!response || response.error) {
-               }
-               else {
-                    load_my_pins(response.data);
-               }
-            });
-         }
-       });
+        _PDK.request('/v1/me/', params, function(response) {
+            if (!response || response.error) {} else {
+                // parse data
+                load_user(response.data);
+                //get list user's pin
+                params = {
+                    fields: 'id, image'
+                };
+                _PDK.request('/v1/me/pins', params, function(response) {
+                    if (!response || response.error) {} else {
+                        var htmlParsed = '';
+                        response.data.forEach(function(element) {
+                            htmlParsed += ParsePin(element);
+                        });
+                        console.log(htmlParsed);
+                        $('#boards_pins_component').html(htmlParsed);
+                    }
+                });
+            }
+        });
     }
 
-    function load_user(data){
-       // parse data
-          console.log(data);
-          var image = data.image;
-          var htmlString = '<div class="col-sm-4">\
-                            <h1 style="text-align: right;">'+data.first_name+' '+data.last_name+'</h1>\
+    function load_user(data) {
+        // parse data
+        console.log(data);
+        var image = data.image;
+        var htmlString = '<div class="col-sm-4">\
+                            <h1 style="text-align: right;">' + data.first_name + ' ' + data.last_name + '</h1>\
                           </div>\
                           <div class="col-sm-3">\
-                            <img src="'+image[pintrest_image_property.small].url+'" class="img-circle">\
+                            <img src="' + image[pintrest_image_property.small].url + '" class="img-circle">\
                           </div>\
                           <div class="col-sm-3">\
                             <input type="text" class="form-control" name="" value="" id="username" data-toggle="tooltip" title="type username" placeholder="username">\
@@ -98,102 +139,112 @@
                             <button type="button" class="btn btn-success" id="search" onclick="search()">find user</button>\
                           </div>\
                         </div>';
-          $('#user_component').html(htmlString); 
+        $('#user_component').html(htmlString);
     }
 
-    function load_boards(){
+    function load_boards() {
 
     }
 
-    function load_my_pins(data){
-      var htmlString ='<div class="row">';
-      htmlString = '<div class="row">\
+    function load_my_pins(data) {
+        var htmlString = '<div class="row">';
+        htmlString = '<div class="row">\
                          <div class="thumbnail col-sm-3">\
                          <button type="button" class="btn btn-success glyphicon glyphicon-plus"></button>\
                       </div>';
-      data.forEach( function(element, index) {
-          console.log(element.image.original.url);
-          htmlString += '<div class="thumbnail col-sm-3">\
-                          <img src = "'+element.image.original.url+'">\
+        data.forEach(function(element, index) {
+            console.log(element.image.original.url);
+            htmlString += '<div class="thumbnail col-sm-3">\
+                          <img src = "' + element.image.original.url + '">\
                          </div>';
-      });
-      htmlString += '</div>';
-      // parse data of list pins
-      $('#boards_pins_component').html(htmlString);
+        });
+        htmlString += '</div>';
+        // parse data of list pins
+        $('#boards_pins_component').html(htmlString);
     }
 
-    function load_user_pins(pins){
-      var htmlString ='<div class="row">';
-      pins.forEach( function(element, index) {
-          var image = element.images;
-          htmlString += '<div class="thumbnail col-sm-3">\
-                          <img src = "'+image[pintrest_image_property.medium].url+'">\
-                         </div>';
-      });
-      htmlString += '</div>';
-      // parse data of list pins
-      $('#boards_pins_component').html(htmlString);
-    }
 
+    function ParsePin(e) {
+        var res = '';
+        var img = '<img id="pins" data-toggle="modal" data-target="#pinModal" data-id="' + e.id + '" src="' + e.image.original.url + '" width="300"' + ' alt=""/>';
+        res += img + '</a>';
+        return res;
+    }
     // END LOAD FUNCTIONS
-/***********************************************************************************/
-    
+    /***********************************************************************************/
+
     // login for login button
-    function login(){
-      PDK.login({ scope : 'read_relationships, read_public' }, function(response){
-          if (!response || response.error) {
-            alert('Error occurred');
-          } 
-          else {
-            // save accessToken
-            access_token = PDK.getSession().accessToken;
-             console.log(JSON.stringify(response));
-             // remove login_UI and load HOME_PAGE
-              $('#login_component').html('');
-              load_home_component();
-          }
-      });
+    function login() {
+        PDK.login({
+            scope: 'read_relationships, read_public'
+        }, function(response) {
+            if (!response || response.error) {
+                alert('Error occurred');
+            } else {
+                // save accessToken
+                access_token = PDK.getSession().accessToken;
+                console.log(JSON.stringify(response));
+                // remove login_UI and load HOME_PAGE
+                $('#login_component').html('');
+                load_home_component();
+            }
+        });
     }
 
-    function search(){
-      //get username from input
-      var username = $('#username').val();
-      if(!username) return;
-      // request user info
-      params = {
-          fields: 'id, image, username, first_name, last_name'
-      };
-      _PDK.request('/v1/users/'+username, params, function (response) {
-         if (!response || response.error) {
-          alert("'"+username+"' does not exists");
-         }
-         else {
-              // load user info and show 
-              var data = response.data;
-              console.log(data);
-              load_user(data);
-              //load username's pins
-              $.ajax({
-                url: 'https://api.pinterest.com/v3/pidgets/users/'+username+'/pins/',
-                type: 'GET',
-                dataType: 'json',
-                data : {}
-              })
-              .done(function(response) {
-                //get first 50 pins 
-                var pins = response.data.pins;
-                console.log(pins);
-                load_user_pins(pins);
-              })
-              .fail(function() {
-                console.log("error");
-              })
-              .always(function() {
-              });
-         }
-      });
+    function search() {
+        //get username from input
+        var username = $('#username').val();
+        if (!username) return;
+        // request user info
+        params = {
+            fields: 'id, image, username, first_name, last_name'
+        };
+        _PDK.request('/v1/users/' + username, params, function(response) {
+            if (!response || response.error) {
+                alert("'" + username + "' does not exists");
+            } else {
+                // load user info and show 
+                var data = response.data;
+                console.log(data);
+                load_user(data);
+                //load username's pins
+                $.ajax({
+                        url: 'https://api.pinterest.com/v3/pidgets/users/' + username + '/pins/',
+                        type: 'GET',
+                        dataType: 'json',
+                        data: {}
+                    })
+                    .done(function(response) {
+                        //get first 50 pins 
+                        var pins = response.data.pins;
+                        console.log(pins);
+                        load_user_pins(pins);
+                    })
+                    .fail(function() {
+                        console.log("error");
+                    })
+                    .always(function() {});
+            }
+        });
     }
-/***********************************************************************************/
+    /***********************************************************************************/
+
+    //Get pin details
+
+    function getpin(id, callback) {
+        var params = {
+            fields: 'id,note,link,image'
+        };
+        var strReq = "/v1/pins/" + id + "/";
+        PDK.request(strReq, params, function(response) {
+            if (!response || response.error) {
+                //alert('Error occurred');
+            } else {
+
+                callback(response);
+            }
+        });
+    }
 
 
 
@@ -210,57 +261,57 @@
 
 
 
-
-
-    function pintrest2(){
-    PDK.request('/v1/me/', function (response) {
-         if (!response || response.error) {
-           //alert('Error occurred');
-         } else {
-          console.log(JSON.stringify(response));
-             //  alert('success');
-               console.log(PDK.getSession().accessToken);
+    function pintrest2() {
+        PDK.request('/v1/me/', function(response) {
+            if (!response || response.error) {
+                //alert('Error occurred');
+            } else {
+                console.log(JSON.stringify(response));
+                //  alert('success');
+                console.log(PDK.getSession().accessToken);
                 alert(response);
                 $('#accessToken').text(access_token);
-         }
-       });
+            }
+        });
     }
-// login and call some request , see response in console 
-function pintrest(){
-     
+    // login and call some request , see response in console 
+    function pintrest() {
+
         //get user info
         var pins = [];
-       
 
-       // get list of user's boards info
-        PDK.request('/v1/me/boards', function (response) {
-          if (!response || response.error) {
-          } else {
-            console.log(JSON.stringify(response));
-                 // PDK.logout();
-          }
+
+        // get list of user's boards info
+        PDK.request('/v1/me/boards', function(response) {
+            if (!response || response.error) {} else {
+                console.log(JSON.stringify(response));
+                // PDK.logout();
+            }
         });
 
         //end get board info
 
         // get list of board's pins
-         PDK.request('/v1/boards/673077175498420282/pins/', function (response) {
-          if (!response || response.error) {
-          } else {
-            console.log(JSON.stringify(response));
-                 // PDK.logout();
-          }
+        PDK.request('/v1/boards/673077175498420282/pins/', function(response) {
+            if (!response || response.error) {} else {
+                console.log(JSON.stringify(response));
+                // PDK.logout();
+            }
         });
-        
+
         //end login
     };
-    (function(d, s, id){
+    (function(d, s, id) {
         var js, pjs = d.getElementsByTagName(s)[0];
-        if (d.getElementById(id)) {return;}
-        js = d.createElement(s); js.id = id;
+        if (d.getElementById(id)) {
+            return;
+        }
+        js = d.createElement(s);
+        js.id = id;
         js.src = "https://assets.pinterest.com/sdk/sdk.js";
         pjs.parentNode.insertBefore(js, pjs);
     }(document, 'script', 'pinterest-jssdk'));
 </script>
 </body>
+
 </html>
