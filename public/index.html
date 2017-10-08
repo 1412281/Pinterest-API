@@ -28,8 +28,8 @@
                     <h3 id="pinNote"></h3>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-danger">Save</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" id="close">Close</button>
+                    <button type="button" class="btn btn-danger" onclick="savePin()">Save</button>
                 </div>
             </div>
         </div>
@@ -40,9 +40,11 @@
 <script async defer src="//assets.pinterest.com/js/pinit.js"></script>
 <!-- script for demo -->
 <script>
+    var selected_id;
     $('#boards_pins_component').on('click', '#pins', function() {
         ClearDataModal();
         var id = $(this).attr('data-id');
+        selected_id = id;
         getpin(id, function(obj) {
             $('#pinImg').attr('src', obj.data.image.original.url);
             $('#pinImg').attr('width', obj.data.image.original.width);
@@ -125,16 +127,19 @@
         // parse data
         console.log(data);
         var image = data.image;
-        var htmlString = '<div class="col-sm-4">\
+        var htmlString = '<div class="col-sm-2">\
+                            <button class="btn btn-primary" onclick="load_home_component()">Home</button>\
+                          </div>\
+                          <div class="col-sm-4">\
                             <h1 style="text-align: right;">' + data.first_name + ' ' + data.last_name + '</h1>\
                           </div>\
-                          <div class="col-sm-3">\
+                          <div class="col-sm-2">\
                             <img src="' + image[pintrest_image_property.small].url + '" class="img-circle">\
                           </div>\
-                          <div class="col-sm-3">\
+                          <div class="col-sm-2">\
                             <input type="text" class="form-control" name="" value="" id="username" data-toggle="tooltip" title="type username" placeholder="username">\
                           </div>\
-                          <div class="col-sm-2">\
+                          <div class="col-sm-1">\
                             <button type="button" class="btn btn-success" id="search" onclick="search()">find user</button>\
                           </div>\
                         </div>';
@@ -191,7 +196,7 @@
     // login for login button
     function login() {
         PDK.login({
-            scope: 'read_relationships, read_public'
+            scope: 'read_relationships, read_public, write_public'
         }, function(response) {
             if (!response || response.error) {
                 alert('Error occurred');
@@ -261,61 +266,59 @@
         });
     }
 
+    //savePin from selected_id
+    function savePin() {
+      var data = getpin(selected_id, function(obj) {
+        console.log(obj);
+        var imageURL = obj.data.image.original.url;
+        var Description = obj.data.note;
+        var shareURL = obj.data.link;
+        // get first boards of user
+        PDK.request('/v1/me/boards',{fields:'name'}, function(response) {
+          var first_board_id = response.data[0].id;
+          if ( !first_board_id ) {
+            alert("you need to create a new board");
+            return;
+          }
+          else {
+            var form_data = {
+              'board' : first_board_id,
+              'note' : obj.data.note,
+              'image_url': obj.data.image.original.url,
+            };
+            // PDK.request('/v1/pins', 'POST', form_data, function(response) {
+            //   console.log(response);
+            //   $('#close').click();
+            // }); 
+            $.ajax({
+                      url: 'https://api.pinterest.com/v1/pins/?access_token=' + PDK.getSession().accessToken+'&fields=id%2Clink%2Cnote%2Curl',
+                      type: 'POST',
+                      dataType: 'json',
+                      data: form_data
+                  })
+                  .done(function(response) {
+                     // print response
+                     console.log(response);
+                     $('#close').click();
+                     alert('Saved pin into your home board!')
+                  })
+                  .fail(function() {
+                      console.log("error");
+                  })
+                  .always(function() { $('#close').click(); });
+          }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    function pintrest2() {
-        PDK.request('/v1/me/', function(response) {
-            if (!response || response.error) {
-                //alert('Error occurred');
-            } else {
-                console.log(JSON.stringify(response));
-                //  alert('success');
-                console.log(PDK.getSession().accessToken);
-                alert(response);
-                $('#accessToken').text(access_token);
-            }
         });
+        // PDK.pin(imageURL, Description, shareURL, function(response){
+        //   console.log(response);
+        // })
+      });
     }
-    // login and call some request , see response in console 
-    function pintrest() {
-
-        //get user info
-        var pins = [];
 
 
-        // get list of user's boards info
-        PDK.request('/v1/me/boards', function(response) {
-            if (!response || response.error) {} else {
-                console.log(JSON.stringify(response));
-                // PDK.logout();
-            }
-        });
+    /***********************************************************************************/
 
-        //end get board info
-
-        // get list of board's pins
-        PDK.request('/v1/boards/673077175498420282/pins/', function(response) {
-            if (!response || response.error) {} else {
-                console.log(JSON.stringify(response));
-                // PDK.logout();
-            }
-        });
-
-        //end login
-    };
+    // function for  PDK initializing
     (function(d, s, id) {
         var js, pjs = d.getElementsByTagName(s)[0];
         if (d.getElementById(id)) {
